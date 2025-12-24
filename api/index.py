@@ -84,6 +84,11 @@ telegram_app.add_handler(CommandHandler("start", start))
 telegram_app.add_handler(CommandHandler("about", about))
 telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 
+
+@app.get("/")
+async def root():
+    return {"status": "Kyla is alive 💜"}
+
 # ----------------- FASTAPI STARTUP -----------------
 @app.on_event("startup")
 async def startup():
@@ -101,3 +106,4 @@ async def telegram_webhook(request: Request):
 @app.get("/")
 async def root():
     return {"status": "Kyla is alive 💜"}
+
