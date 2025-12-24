@@ -9,38 +9,32 @@ from telegram.ext import (
     filters
 )
 from groq import Groq
-from dotenv import load_dotenv
-
-load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 app = FastAPI()
-telegram_app = Application.builder().token(BOT_TOKEN).build()
 
+telegram_app = Application.builder().token(BOT_TOKEN).build()
 client = Groq(api_key=GROQ_API_KEY)
 
 SYSTEM_PROMPT = """
 You are Kyla 🤖, the personal AI assistant of Venkateswaran K (Kyro).
-
-You confidently explain his skills, projects, achievements, goals,
-and respond warmly like a personal portfolio assistant.
+Answer confidently about his skills, projects, achievements, and goals.
 """
 
-# ---------------- COMMANDS ----------------
+# ---------- COMMANDS ----------
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Hey 👋 I'm Kyla 🤖\n"
-        "Personal AI assistant of *Venkateswaran (Kyro)*.\n"
-        "Ask me about his skills, projects, or achievements 🚀",
-        parse_mode="Markdown"
+        "Personal AI assistant of Venkateswaran (Kyro).\n"
+        "Ask me about skills, projects, or achievements 🚀"
     )
 
 async def about(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "Kyla 🤖 – Personal AI Portfolio Bot\nBuilt with FastAPI + Groq + Telegram"
+        "Kyla 🤖 – AI-powered personal portfolio bot"
     )
 
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -54,14 +48,19 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
     )
 
-    reply = response.choices[0].message.content.strip()
-    await update.message.reply_text(reply)
+    await update.message.reply_text(response.choices[0].message.content.strip())
 
 telegram_app.add_handler(CommandHandler("start", start))
 telegram_app.add_handler(CommandHandler("about", about))
 telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
 
-# ---------------- WEBHOOK ----------------
+# ---------- FASTAPI STARTUP (🔥 FIX) ----------
+
+@app.on_event("startup")
+async def startup():
+    await telegram_app.initialize()
+
+# ---------- WEBHOOK ----------
 
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
@@ -69,3 +68,9 @@ async def telegram_webhook(request: Request):
     update = Update.de_json(data, telegram_app.bot)
     await telegram_app.process_update(update)
     return {"ok": True}
+
+# ---------- OPTIONAL ROOT ----------
+
+@app.get("/")
+async def root():
+    return {"status": "Kyla is alive 🤖"}
