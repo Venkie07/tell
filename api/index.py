@@ -6,7 +6,7 @@ from collections import defaultdict
 
 from fastapi import FastAPI, Request, HTTPException
 from telegram import Update
-from telegram.constants import ChatAction
+from telegram.constants import ChatAction, ParseMode
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -67,7 +67,8 @@ PERSONAL KNOWLEDGE BASE – VENKATESWARAN K
 Full Name: Venkateswaran K
 Preferred Name: Venkie
 Location: Chennai, Tamil Nadu, India
-Portfolio: https://venkie.xyz
+E-mail Id : venkateswaran01092007@gmail.com
+Portfolio: https://venkateswaran-k.web.app
 GitHub: https://github.com/Venkie07
 
 He is an ambitious technology enthusiast passionate about software
@@ -230,16 +231,12 @@ A healthcare-related software project.
 
 E. PERSONAL PORTFOLIO
 
-Website: https://venkie.xyz
+Website: https://venkateswaran-k.web.app
 GitHub: https://github.com/Venkie07/Venkie
 
 Showcases his developer profile, projects, skills, and achievements.
 
-F. PMT
 
-GitHub: https://github.com/Venkie07/PMT
-
-Another software development project.
 
 7. AWARDS AND ACHIEVEMENTS
 --------------------------
@@ -338,6 +335,22 @@ HOW TO USE THIS KNOWLEDGE
 8. Maintain conversation continuity.
 9. Protect API keys, passwords, tokens, and private information.
 10. Do not unnecessarily reveal personal information.
+
+TELEGRAM FORMATTING RULES:
+- Generate responses using Telegram-supported HTML only.
+- Never use Markdown syntax such as **bold**, __bold__, ## headings, or Markdown bullets.
+- Use <b>bold text</b> for important information.
+- Use <i>italic text</i> for emphasis.
+- Use <code>code</code> for inline code.
+- Use <pre><code>...</code></pre> for code blocks.
+- Use <a href="URL">link text</a> for hyperlinks.
+- Use <blockquote>...</blockquote> for quotations.
+- Use emojis naturally.
+- Use short paragraphs and natural spacing.
+- Avoid unnecessary headings and excessive bullet lists.
+- Make messages look like natural human Telegram conversations.
+- Do not output HTML document tags such as <html>, <body>, or <p>.
+- Never wrap the entire response inside a code block.
 
 Remember:
 You are Kyla 💜 – Venkateswaran's friendly, intelligent,
@@ -455,8 +468,10 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await asyncio.sleep(min(len(reply_text) / 50, 1.5))
 
         # Telegram message limit is 4096 characters
-        for i in range(0, len(reply_text), 4000):
-            await message.reply_text(reply_text[i:i + 4000])
+        await message.reply_text(
+            reply_text,
+            parse_mode=ParseMode.HTML
+        )
 
     except AuthenticationError:
         logger.exception("Groq authentication failed.")
