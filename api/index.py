@@ -450,6 +450,12 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             reply_text = reply_text.strip()
 
+
+        # Remove unwanted Markdown formatting
+        reply_text = reply_text.replace("**", "")
+        reply_text = reply_text.replace("__", "")
+        reply_text = reply_text.replace("###", "")
+        reply_text = reply_text.replace("##", "")
         # Save successful conversation context
         chat_history[user_id].append({
             "role": "user",
