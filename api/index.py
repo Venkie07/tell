@@ -1,12 +1,14 @@
 
 import os
+import re
+import html
 import logging
 import asyncio
 from collections import defaultdict
 
 from fastapi import FastAPI, Request, HTTPException
 from telegram import Update
-from telegram.constants import ChatAction, ParseMode
+from telegram.constants import ChatAction
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -45,6 +47,29 @@ chat_history = defaultdict(list)
 MAX_HISTORY = 12
 
 # ----------------- SYSTEM PROMPT -----------------
+
+
+def clean_response(text):
+
+    # Decode HTML entities
+    text = html.unescape(text)
+
+    # Remove HTML tags
+    text = re.sub(r"<[^>]*>", "", text)
+
+    # Remove Markdown formatting
+    text = text.replace("**", "")
+    text = text.replace("__", "")
+    text = text.replace("###", "")
+    text = text.replace("##", "")
+
+    # Remove unwanted HTML remnants
+    text = text.replace("&nbsp;", " ")
+
+    # Clean excessive blank lines
+    text = re.sub(r"\n{3,}", "\n\n", text)
+
+    return text.strip()
 
 
 SYSTEM_PROMPT = """
@@ -451,11 +476,8 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_text = reply_text.strip()
 
 
-        # Remove unwanted Markdown formatting
-        reply_text = reply_text.replace("**", "")
-        reply_text = reply_text.replace("__", "")
-        reply_text = reply_text.replace("###", "")
-        reply_text = reply_text.replace("##", "")
+        # Clean Markdown and HTML formatting
+        reply_text = clean_response(reply_text)
         # Save successful conversation context
         chat_history[user_id].append({
             "role": "user",
@@ -474,10 +496,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await asyncio.sleep(min(len(reply_text) / 50, 1.5))
 
         # Telegram message limit is 4096 characters
-        await message.reply_text(
-            reply_text,
-            parse_mode=ParseMode.HTML
-        )
+        await message.reply_text(reply_text)
 
     except AuthenticationError:
         logger.exception("Groq authentication failed.")
